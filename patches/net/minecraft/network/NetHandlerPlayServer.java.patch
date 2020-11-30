@@ -278,7 +278,7 @@
 +                trigger = !trigger;
 +                if(trigger)
 +                	this.server.getPluginManager().callEvent(event);
-+                
++
 +                // If the event is cancelled we move the player back to their old location.
 +                if (event.isCancelled())
 +                {
@@ -573,7 +573,7 @@
 +        // CraftBukkit start - Replace vanilla quit message handling with our own.
 +        /*
 +        ChatMessage chatcomponenttranslation = new ChatMessage("multiplayer.player.left", new Object[] { this.player.getScoreboardDisplayName()});
-+        
++
 +        chatcomponenttranslation.b().setColor(EnumChatFormat.YELLOW);
 +        this.minecraftServer.getPlayerList().sendMessage(chatcomponenttranslation);
 +        */
@@ -725,7 +725,8 @@
 +            else if (true)
 +            {
 +            	String[] bits = s.split(" ");
-+            	
+ 
+-            this.chatSpamThresholdCount += 20;
 +            	HashSet<String> possibilities = new HashSet<String>(); // No duplicates allowed
 +            	for (String str: bits)
 +            	{
@@ -735,10 +736,10 @@
 +            				continue;
 +            			possibilities.add(str.substring(1));
  
--            this.chatSpamThresholdCount += 20;
+-            if (this.chatSpamThresholdCount > 200 && !this.serverController.getConfigurationManager().func_152596_g(this.playerEntity.getGameProfile()))
 +            		}
 +            	}
-+            	
++
 +    			for (Object o : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
 +    			{
 +    				if (! (o instanceof EntityPlayerMP))
@@ -750,14 +751,13 @@
 +    				{
 +    					ep.worldObj.playSoundAtEntity(ep, "random.orb", 4.0F, 4.0F);
 +    				}
-+    				
++
 +    			}
-+            	
++
 +                this.chat(s, true);
 +                // CraftBukkit end - the below is for reference. :)
 +            }
- 
--            if (this.chatSpamThresholdCount > 200 && !this.serverController.getConfigurationManager().func_152596_g(this.playerEntity.getGameProfile()))
++
 +            // CraftBukkit start - replaced with thread safe throttle
 +            // this.chatSpamThresholdCount += 20;
 +            if (chatSpamField.addAndGet(this, 20) > 200 && !this.serverController.getConfigurationManager().func_152596_g(this.playerEntity.getGameProfile()))
@@ -928,23 +928,23 @@
 +        org.bukkit.craftbukkit.SpigotTimings.playerCommandTimer.startTiming(); // Spigot
 +        // CraftBukkit start
 +        CraftPlayer player = this.getPlayerB();
-+        
++
 +        // Thermos - block specified commands completely - no one will ever believe you.
 +        if(net.minecraftforge.cauldron.configuration.CauldronConfig.instance.blockedCMDs.contains(p_147361_1_))
 +        {
 +            org.bukkit.craftbukkit.SpigotTimings.playerCommandTimer.stopTiming(); // Spigot
 +            return;
 +        }
-+        
-+        
++
++
 +        if (net.minecraftforge.cauldron.configuration.CauldronConfig.instance.noFallbackAlias.getValue())
 +        {
 +        	int ind = p_147361_1_.indexOf(':');
 +        	int spc = p_147361_1_.indexOf(' ');
 +        	if (ind != -1 && ( ind < spc || spc == -1))
 +        		p_147361_1_ = "/" + p_147361_1_.substring(ind);
-+        }        
-+        
++        }
++
 +        PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(player, p_147361_1_, new LazyPlayerSet());
 +        this.server.getPluginManager().callEvent(event);
 +
@@ -1190,12 +1190,10 @@
                  }
              }
          }
-@@ -828,14 +1625,26 @@
-     {
+@@ -829,13 +1626,25 @@
          this.playerEntity.func_143004_u();
          C16PacketClientStatus.EnumState enumstate = p_147342_1_.func_149435_c();
--
-+        
+ 
 +        final boolean isDead = this.playerEntity.getHealth() <= 0.0F;
          switch (NetHandlerPlayServer.SwitchEnumState.field_151290_a[enumstate.ordinal()])
          {
@@ -1881,24 +1879,24 @@
 -                itemstack = packetbuffer.readItemStackFromBuffer();
 +                push = packetbuffer.readItemStackFromBuffer();
  
--                if (itemstack == null)
-+                if (push == null)
+-                if (itemstack != null)
++                if (push != null)
                  {
-                     return;
-                 }
+-                    if (!ItemWritableBook.func_150930_a(itemstack.getTagCompound()))
++                    if (!ItemWritableBook.func_150930_a(push.getTagCompound()))
+                     {
+                         throw new IOException("Invalid book tag!");
+                     }
  
--                if (!ItemWritableBook.func_150930_a(itemstack.getTagCompound()))
-+                if (!ItemWritableBook.func_150930_a(push.getTagCompound()))
-                 {
-                     throw new IOException("Invalid book tag!");
-                 }
+-                    itemstack1 = this.playerEntity.inventory.getCurrentItem();
++                    stack = this.playerEntity.inventory.getCurrentItem();
  
--                itemstack1 = this.playerEntity.inventory.getCurrentItem();
-+                stack = this.playerEntity.inventory.getCurrentItem();
+-                    if (itemstack1 == null)
++                    if (stack == null)
+                     {
+                         return;
+                     }
  
--                if (itemstack1 != null)
-+                if (stack != null)
-                 {
 -                    if (itemstack.getItem() == Items.writable_book && itemstack.getItem() == itemstack1.getItem())
 +                    if (push.getItem() == Items.writable_book && push.getItem() == stack.getItem() && push.getEnchantmentTagList().equals(stack.getEnchantmentTagList()))
                      {
@@ -1942,24 +1940,24 @@
 -                itemstack = packetbuffer.readItemStackFromBuffer();
 +                push = packetbuffer.readItemStackFromBuffer();
  
--                if (itemstack != null)
-+                if (push != null)
+-                if (itemstack == null)
++                if (push == null)
                  {
--                    if (!ItemEditableBook.validBookTagContents(itemstack.getTagCompound()))
-+                    if (!ItemEditableBook.validBookTagContents(push.getTagCompound()))
-                     {
-                         throw new IOException("Invalid book tag!");
-                     }
+                     return;
+                 }
  
--                    itemstack1 = this.playerEntity.inventory.getCurrentItem();
-+                    stack = this.playerEntity.inventory.getCurrentItem();
+-                if (!ItemEditableBook.validBookTagContents(itemstack.getTagCompound()))
++                if (!ItemEditableBook.validBookTagContents(push.getTagCompound()))
+                 {
+                     throw new IOException("Invalid book tag!");
+                 }
  
--                    if (itemstack1 == null)
-+                    if (stack == null)
-                     {
-                         return;
-                     }
+-                itemstack1 = this.playerEntity.inventory.getCurrentItem();
++                stack = this.playerEntity.inventory.getCurrentItem();
  
+-                if (itemstack1 != null)
++                if (stack != null)
+                 {
 -                    if (itemstack.getItem() == Items.written_book && itemstack1.getItem() == Items.writable_book)
 +                    if (push.getItem() == Items.written_book && stack.getItem() == Items.writable_book)
                      {

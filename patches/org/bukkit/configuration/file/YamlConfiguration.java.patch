@@ -8,4 +8,4 @@
 +        yamlOptions.setAllowUnicode(true);
          yamlRepresenter.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
  
-         String header = buildHeade
+         String header = buildHeader();
