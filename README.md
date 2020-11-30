@@ -56,7 +56,7 @@ Please read the [guide](https://mcimaginarium.github.io//Thermos/contributing) o
 ## Setup the Workspace
 * Checkout project
   * You can use IDE or clone from console:
-  `git clone https://github.com/mcimaginarium/Thermos.git`
+  `git clone --recurse-submodules https://github.com/Rus-Minecraft/Thermos.git`
 * Creating the workspace
   * To create the workspace just run the command: `./gradlew -PforgeBuildNumber='1614' setupCauldron`
   * To create the patches with the changes made just run: `./gradlew -PforgeBuildNumber='1614' genPatches`
